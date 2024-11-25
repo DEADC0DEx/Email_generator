@@ -3,7 +3,7 @@ import random
 
 app = Flask(__name__)
 
-# Data dictionaries for English and Hebrew
+# מילוני הנתונים באנגלית ובעברית
 data = {
     'en': {
         "names": ["Oren", "Dana", "Yossi", "Tal", "Noa", "Alex", "Jordan", "Taylor", "Sam", "Casey"],
@@ -183,25 +183,25 @@ data = {
     }
 }
 
-# HTML templates
+# תבניות HTML
 form_template = '''
 <!DOCTYPE html>
-<html lang="en">
+<html lang="he">
 <head>
     <meta charset="UTF-8">
-    <title>Humorous Email Generator</title>
+    <title>מחולל אימייל הומוריסטי</title>
 </head>
 <body>
-    <h1>Humorous Email Generator</h1>
+    <h1>מחולל אימייל הומוריסטי</h1>
     <form method="post">
-        <label for="language">Select Language:</label>
+        <label for="language">בחר שפה:</label>
         <select name="language">
-            <option value="en">English</option>
             <option value="he">עברית</option>
+            <option value="en">English</option>
         </select><br><br>
-        <label for="name">Enter Your Name:</label>
+        <label for="name">הכנס את שמך:</label>
         <input type="text" name="name" required><br><br>
-        <input type="submit" value="Generate Email">
+        <input type="submit" value="צור אימייל">
     </form>
 </body>
 </html>
@@ -212,12 +212,12 @@ email_template = '''
 <html lang="{{ lang }}">
 <head>
     <meta charset="UTF-8">
-    <title>Generated Email</title>
+    <title>אימייל שנוצר</title>
 </head>
 <body>
     {{ email_content }}
     <br><br>
-    <a href="/">Back</a>
+    <a href="/">חזרה</a>
 </body>
 </html>
 '''
