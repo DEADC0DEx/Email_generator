@@ -1,5 +1,7 @@
+from markupsafe import Markup
 from flask import Flask, render_template_string, request
 import random
+import markdown
 
 app = Flask(__name__)
 
@@ -186,22 +188,22 @@ data = {
 # תבניות HTML
 form_template = '''
 <!DOCTYPE html>
-<html lang="he">
+<html lang="en">
 <head>
     <meta charset="UTF-8">
-    <title>מחולל אימייל הומוריסטי</title>
+    <title>Humorous Email Generator</title>
 </head>
 <body>
-    <h1>מחולל אימייל הומוריסטי</h1>
+    <h1>Humorous Email Generator</h1>
     <form method="post">
-        <label for="language">בחר שפה:</label>
+        <label for="language">Choose Language:</label>
         <select name="language">
             <option value="he">עברית</option>
             <option value="en">English</option>
         </select><br><br>
-        <label for="name">הכנס את שמך:</label>
+        <label for="name">Name:</label>
         <input type="text" name="name" required><br><br>
-        <input type="submit" value="צור אימייל">
+        <input type="submit" value="Generate Email">
     </form>
 </body>
 </html>
@@ -209,15 +211,24 @@ form_template = '''
 
 email_template = '''
 <!DOCTYPE html>
-<html lang="{{ lang }}">
+<html>
 <head>
     <meta charset="UTF-8">
-    <title>אימייל שנוצר</title>
+    <title>Generated Email</title>
 </head>
 <body>
-    {{ email_content }}
-    <br><br>
-    <a href="/">חזרה</a>
+{% if lang == 'he' %}
+    <!-- If language is Hebrew, use right-to-left alignment -->
+    <div style="direction: rtl; text-align: right;">
+{% else %}
+    <!-- Otherwise, use the default left-to-right alignment -->
+    <div>
+{% endif %}
+        <!-- Display the parsed HTML safely -->
+        {{ email_content|safe }}
+        <br><br>
+        <a href="/">Back</a>
+    </div>
 </body>
 </html>
 '''
@@ -227,15 +238,21 @@ def index():
     if request.method == 'POST':
         language = request.form['language']
         user_name = request.form['name']
-        email_content = generate_email(language, user_name)
-        return render_template_string(email_template, email_content=email_content, lang=language)
+        # This returns *Markdown* text from generate_email
+        email_content_md = generate_email(language, user_name)
+        # Convert Markdown to HTML
+        parsed_html = markdown.markdown(email_content_md)
+        # Mark as safe for Jinja (since we trust our own parsed HTML)
+        parsed_html_safe = Markup(parsed_html)
+        # Pass parsed HTML along with language
+        return render_template_string(email_template, email_content=parsed_html_safe, lang=language)
     return render_template_string(form_template)
 
 def generate_email(lang, name):
     lang_data = data[lang]
     first_name = name if name else random.choice(lang_data["names"])
     company_name = f"{random.choice(lang_data['company_names']['first_word'])} {random.choice(lang_data['company_names']['second_word'])}"
-    job_title = f"{random.choice(lang_data['fake_professions']['levels'])} {random.choice(lang_data['fake_professions']['actions'])} {'of' if lang == 'en' else 'ב-'}{random.choice(lang_data['fake_professions']['fields'])}"
+    job_title = f"{random.choice(lang_data['fake_professions']['levels'])} {random.choice(lang_data['fake_professions']['actions'])} {'of ' if lang == 'en' else 'ב-'}{random.choice(lang_data['fake_professions']['fields'])}"
     linkedin_description = random.choice(lang_data["linkedin_descriptions"])
     benefit = random.choice(lang_data["weird_benefits"])
     benefit2 = random.choice([b for b in lang_data["weird_benefits"] if b != benefit])
